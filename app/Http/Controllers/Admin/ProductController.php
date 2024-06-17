@@ -2,225 +2,134 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Product;
-use App\Models\Category;
-use App\Models\Attribute;
-use Illuminate\Http\Request;
-use App\Models\AttributeOption;
-use App\Models\ProductInventory;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\File;
-use App\Models\ProductAttributeValue;
+use App\Http\Controllers\Traits\ImageUploadingTrait;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Tag;
 
 class ProductController extends Controller
 {
+    use ImageUploadingTrait;
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $products = Product::orderBy('name', 'ASC')->get();
+        $products = Product::all();
 
         return view('admin.products.index', compact('products'));
     }
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
-        $categories = Category::orderBy('name', 'ASC')->get(['name','id']);
-        $types = Product::types();
-        $configurable_attributes = $this->_getConfigurableAttributes();
-        
-        return view('admin.products.create', compact('categories', 'types', 'configurable_attributes'));
+        $categories = Category::pluck('name', 'id');
+        $tags = Tag::pluck('name', 'id');
+
+        return view('admin.products.create', compact('categories','tags'));
     }
-
-    private function _getConfigurableAttributes()
-	{
-		return Attribute::where('is_configurable', true)->get();
-    }
-    
-    private function _generateAttributeCombinations($arrays)
-	{
-        $result = [[]];
-		foreach ($arrays as $property => $property_values) {
-            $tmp = [];
-			foreach ($result as $result_item) {
-				foreach ($property_values as $property_value) {
-                    $tmp[] = array_merge($result_item, array($property => $property_value));
-                }
-            }
-            $result = $tmp;
-        }
-		return $result;
-    }
-    
-    private function _convertVariantAsName($variant)
-	{
-		$variantName = '';
-		foreach (array_keys($variant) as $key => $code) {
-			$attributeOptionID = $variant[$code];
-			$attributeOption = AttributeOption::find($attributeOptionID);
-			
-			if ($attributeOption) {
-				$variantName .= ' - ' . $attributeOption->name;
-			}
-		}
-
-		return $variantName;
-    }
-    
-    private function _saveProductAttributeValues($product, $variant, $parentProductID)
-	{
-		foreach (array_values($variant) as $attributeOptionID) {
-            $attributeOption = AttributeOption::find($attributeOptionID);
-		   
-			$attributeValueParams = [
-				'parent_product_id' => $parentProductID,
-				'product_id' => $product->id,
-				'attribute_id' => $attributeOption->attribute_id,
-				'text_value' => $attributeOption->name,
-			];
-
-			ProductAttributeValue::create($attributeValueParams);
-		}
-	}
-
-    private function _generateProductVariants($product, $request)
-	{
-		$configurableAttributes = $this->_getConfigurableAttributes();
-
-		$variantAttributes = [];
-		foreach ($configurableAttributes as $attribute) {
-            $variantAttributes[$attribute->code] = $request[$attribute->code];
-        }
-
-		$variants = $this->_generateAttributeCombinations($variantAttributes);
-        // here
-		if ($variants) {
-			foreach ($variants as $variant) {
-				$variantParams = [
-					'parent_id' => $product->id,
-					'user_id' => auth()->id(),
-					'sku' => $product->sku . '-' .implode('-', array_values($variant)),
-					'type' => 'simple',
-					'name' => $product->name . $this->_convertVariantAsName($variant),
-				];
-
-				$newProductVariant = Product::create($variantParams);
-
-				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
-				$newProductVariant->categories()->sync($categoryIds);
-
-                $this->_saveProductAttributeValues($newProductVariant, $variant, $product->id);
-			}
-		}
-	}   
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(ProductRequest $request)
     {
-        $product = DB::transaction(
-			function () use ($request) {
-				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
-				$product = Product::create($request->validated() + ['user_id' => auth()->id()]);
-				$product->categories()->sync($categoryIds);
+        $product = Product::create($request->validated());
+        $product->tags()->attach($request->input('tags', []));
 
-				if ($request['type'] == 'configurable') {
-					$this->_generateProductVariants($product, $request);
-				}
-				return $product;
-			}
-        );
-        
-        return redirect()->route('admin.products.edit', $product)->with([
-            'message' => 'Berhasil di buat !',
-            'alert-type' => 'success'
+        foreach ($request->input('gallery', []) as $file) {
+            $product->addMedia(storage_path('tmp/uploads/' . $file))->toMediaCollection('gallery');
+        }
+
+        return redirect()->route('admin.products.index')->with([
+            'message' => 'Success Created !',
+            'type' => 'success'
         ]);
-    } 
+    }
 
     /**
      * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function show(string $id)
+    public function show(Product $product)
     {
-        //
+        return view('admin.products.show', compact('product'));
     }
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
     public function edit(Product $product)
     {
-        $categories = Category::orderBy('name', 'ASC')->get(['name','id']);
-        $statuses = Product::statuses();
-        $types = Product::types();
-        $configurable_attributes = $this->_getConfigurableAttributes();
+        $categories = Category::pluck('name', 'id');
+        $tags = Tag::pluck('name', 'id');
 
-        return view('admin.products.edit', compact('product','categories','statuses','types','configurable_attributes'));
+        return view('admin.products.edit', compact('product','categories','tags'));
     }
-
-    private function _updateProductVariants($request)
-	{
-		if ($request['variants']) {
-			foreach ($request['variants'] as $productParams) {
-				$product = Product::find($productParams['id']);
-				$product->update($productParams);
-
-				$product->status = $request['status'];
-				$product->save();
-				
-				ProductInventory::updateOrCreate(['product_id' => $product->id], ['qty' => $productParams['qty']]);
-			}
-		}
-	}
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function update(ProductRequest $request, Product $product)
+    public function update(ProductRequest $request,Product $product)
     {
-        $saved = false;
-		$saved = DB::transaction(
-			function () use ($product, $request) {
-				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
-				$product->update($request->validated());
-				$product->categories()->sync($categoryIds);
+        $product->update($request->validated());
+        $product->tags()->sync($request->input('tags', []));
 
-				if ($product->type == 'configurable') {
-					$this->_updateProductVariants($request);
-				} else {
-					ProductInventory::updateOrCreate(['product_id' => $product->id], ['qty' => $request['qty']]);
-				}
+        if (count($product->gallery) > 0) {
+            foreach ($product->gallery as $media) {
+                if (!in_array($media->file_name, $request->input('gallery', []))) {
+                    $media->delete();
+                }
+            }
+        }
 
-				return true;
-			}
-        );
-        
+        $media = $product->gallery->pluck('file_name')->toArray();
+
+        foreach ($request->input('gallery', []) as $file) {
+            if (count($media) === 0 || !in_array($file, $media)) {
+                $product->addMedia(storage_path('tmp/uploads/' . $file))->toMediaCollection('gallery');
+            }
+        }
+
         return redirect()->route('admin.products.index')->with([
-            'message' => 'Berhasil di ganti !',
-            'alert-type' => 'info'
+            'message' => 'Success Updated !',
+            'type' => 'info'
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
     public function destroy(Product $product)
     {
-        foreach($product->productImages as $productImage) {
-            File::delete('storage/' . $productImage->path);
-        }
         $product->delete();
 
         return redirect()->back()->with([
-            'message' => 'Berhasil di hapus !',
-            'alert-type' => 'danger'
+            'message' => 'Success Deleted !',
+            'type' => 'danger'
         ]);
     }
 }

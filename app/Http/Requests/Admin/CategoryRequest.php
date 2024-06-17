@@ -8,8 +8,10 @@ class CategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
@@ -17,16 +19,16 @@ class CategoryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
+     * @return array
      */
-    public function rules(): array
+    public function rules()
     {
         switch ($this->method()) {
             case 'POST':
             {
                 return [
-                    'name' => ['required', 'max:255', 'unique:categories,name'],
-                    'parent_id' => ['nullable'],
+                    'name' => ['required', 'max:255', 'unique:categories'],
+                    'category_id' => ['nullable'],
                 ];
             }
             case 'PUT':
@@ -34,7 +36,7 @@ class CategoryRequest extends FormRequest
             {
                 return [
                     'name' => ['required', 'max:255', 'unique:categories,name,'.$this->route()->category->id],
-                    'parent_id' => ['nullable'],
+                    'category_id' => ['nullable'],
                 ];
             }
             default: break;

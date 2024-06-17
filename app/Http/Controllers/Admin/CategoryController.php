@@ -3,88 +3,109 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Category;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ImageUploadingTrait;
 use App\Http\Requests\Admin\CategoryRequest;
 
 class CategoryController extends Controller
 {
+    use ImageUploadingTrait;
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $categories = Category::with('parent')->get();
+        $categories = Category::withCount('products')->get();
 
         return view('admin.categories.index', compact('categories'));
     }
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
-        $main_categories = Category::whereNull('parent_id')->get(['id', 'name']);
+        $categories = Category::whereNull('category_id')->pluck('name', 'id');
 
-        return view('admin.categories.create', compact('main_categories'));
+        return view('admin.categories.create', compact('categories'));
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(CategoryRequest $request)
     {
-        Category::create($request->validated());
+        $category = Category::create($request->validated());
+
+        if ($request->input('photo', false)) {
+            $category->addMedia(storage_path('tmp/uploads/' . $request->input('photo')))->toMediaCollection('photo');
+        }
 
         return redirect()->route('admin.categories.index')->with([
-            'message' => 'berhasil dibuat !',
-            'alert-type' => 'success'
+            'message' => 'Succeess Created !',
+            'type' => 'success'
         ]);
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
     public function edit(Category $category)
     {
-        $main_categories = Category::whereNull('parent_id')->where('id','!=', $category->id)->get(['id', 'name']);
+        $categories = Category::whereNull('category_id')->pluck('name', 'id');
 
-        return view('admin.categories.edit', compact('category', 'main_categories'));
+        return view('admin.categories.edit', compact('category', 'categories'));
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function update(CategoryRequest $request, Category $category)
+    public function update(CategoryRequest $request,Category $category)
     {
         $category->update($request->validated());
 
+        if($request->input('photo', false)){
+            if(!$category->photo || $request->input('photo') !== $category->photo->file_name){
+                isset($category->photo) ? $category->photo->delete() : null;
+                $category->addMedia(storage_path('tmp/uploads/') . $request->input('photo'))->toMediaCollection('photo');
+            }
+        }else if($category->photo){
+            $category->photo->delete();
+        }
+
         return redirect()->route('admin.categories.index')->with([
-            'message' => 'berhasil di tambah !',
-            'alert-type' => 'success'
+            'message' => 'Success Updated !',
+            'type' => 'info'
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
     public function destroy(Category $category)
     {
         $category->delete();
 
         return redirect()->back()->with([
-            'message' => 'berhasil di hapus !',
-            'alert-type' => 'danger'
+            'message' => 'Deleted Successfully !',
+            'type' => 'danger'
         ]);
     }
 }

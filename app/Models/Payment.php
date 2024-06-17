@@ -9,14 +9,14 @@ class Payment extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id', 'created_at', 'updated_at'];
+    protected $guarded = [];
 
     public const PAYMENT_CHANNELS = ['credit_card', 'mandiri_clickpay', 'cimb_clicks',
 	'bca_klikbca', 'bca_klikpay', 'bri_epay', 'echannel', 'permata_va',
 	'bca_va', 'bni_va', 'other_va', 'gopay', 'indomaret',
 	'danamon_online', 'akulaku'];
 
-	public const EXPIRY_DURATION = 7;
+	public const EXPIRY_DURATION = 1;
 	public const EXPIRY_UNIT = 'days';
 	  
 
@@ -29,9 +29,9 @@ class Payment extends Model
 	public const CANCEL = 'cancel';
 
 
-    public const PAYMENTCODE = 'PAY';
-    
-    public static function integerToRoman($integer)
+	public const PAYMENTCODE = 'PAY';
+
+	public static function integerToRoman($integer)
 	{
 		$integer = intval($integer);
 		$result = '';
@@ -48,11 +48,6 @@ class Payment extends Model
 		return $result;
 	}
 
-	/**
-	 * Generate order code
-	 *
-	 * @return string
-	 */
 	public static function generateCode()
 	{
 		$dateCode = self::PAYMENTCODE . '/' . date('Ymd') . '/' . self::integerToRoman(date('m')). '/' . self::integerToRoman(date('d')). '/';
@@ -78,15 +73,8 @@ class Payment extends Model
 		return $orderCode;
 	}
 
-	/**
-	 * Check if the generated order code is exists
-	 *
-	 * @param string $orderCode order code
-	 *
-	 * @return void
-	 */
 	private static function _isOrderCodeExists($orderCode)
 	{
-		return self::where('number', '=', $orderCode)->exists();
-	}
+		return Order::where('code', '=', $orderCode)->exists();
+    }
 }

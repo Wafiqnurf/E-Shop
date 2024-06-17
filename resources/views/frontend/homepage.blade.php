@@ -1,76 +1,74 @@
-@extends('frontend.layout')
+@extends('layouts.frontend')
 
 @section('content')
-    <!-- slider -->
-        <div class="slider-area">
-            <div class="slider-active owl-carousel">
-                @foreach($slides as $slide)
-                    <div class="single-slider-4 slider-height-6 bg-img" style="background-image: url({{ Storage::url($slide->path) }})">
-                        <div class="container">
-                            <div class="row">
-                                <div class="ml-auto col-lg-6">
-                                    <div class="furniture-content fadeinup-animated">
-                                        <h2 class="animated">{{ $slide->title }}</h2>
-                                        <p class="animated">{{ $slide->body }}</p>
-                                        <a class="furniture-slider-btn btn-hover animated" href="{{ $slide->url }}">Go</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+    <!-- Breadcrumb Section Begin -->
+    <section class="mb-5">
+      <div class="container">
+          <div class="hero__item set-bg" data-setbg="{{ asset('frontend/img/hero/banner.jpg') }}">
+              <div class="hero__text">
+                  <span>FRUIT FRESH</span>
+                  <h2>Vegetable <br />100% Organic</h2>
+                  <p>Free Pickup and Delivery Available</p>
+                  <a href="#" class="primary-btn">SHOP NOW</a>
+              </div>
+          </div>
+      </div>
+    </section>
+      <!-- Breadcrumb Section End -->
 
-            </div>
+    <!-- Categories Section Begin -->
+    <section class="categories">
+      <div class="container">
+        <div class="row">
+          <div class="categories__slider owl-carousel">
+            @foreach($menu_categories as $menu_category)
+              <div class="col-lg-3">
+                <div
+                  class="categories__item set-bg"
+                  data-setbg="{{ $menu_category->photo->getUrl() }}"
+                >
+                  <h5><a href="{{ route('shop.index', $menu_category->slug) }}">{{ $menu_category->name }}</a></h5>
+                </div>
+              </div>
+            @endforeach
+          </div>
         </div>
-    <!-- end -->
-    <!-- products -->
-    @if ($products)
-	<div class="popular-product-area wrapper-padding-3 pt-115 pb-115">
-		<div class="container-fluid">
-			<div class="section-title-6 text-center mb-50">
-				<h2>Popular Product</h2>
-				<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text</p>
-			</div>
-			<div class="product-style">
-				<div class="popular-product-active owl-carousel">
-					@foreach ($products as $product)
-						@php
-							$product = $product->parent ?: $product;	
-						@endphp
-						<div class="product-wrapper">
-							<div class="product-img">
-								<a href="{{ url('product/'. $product->slug) }}">
-									@if ($product->productImages->first())
-										<img src="{{ Storage::url($product->productImages->first()->path) }}" alt="{{ $product->name }}">
-									@else
-										<img src="{{ asset('themes/ezone/assets/img/product/fashion-colorful/1.jpg') }}" alt="{{ $product->name }}">
-									@endif
-								</a>
-								<div class="product-action">
-									<a class="animate-left add-to-fav" title="Wishlist"  product-slug="{{ $product->slug }}" href="">
-										<i class="pe-7s-like"></i>
-									</a>
-									<a class="animate-top add-to-card" title="Add To Cart" href="" product-id="{{ $product->id }}" product-type="{{ $product->type }}" product-slug="{{ $product->slug }}">
-										<i class="pe-7s-cart"></i>
-									</a>
-									<a class="animate-right quick-view" title="Quick View" product-slug="{{ $product->slug }}" href="">
-										<i class="pe-7s-look"></i>
-									</a>
-								</div>
-							</div>
-							<div class="funiture-product-content text-center">
-								<h4><a href="{{ url('product/'. $product->slug) }}">{{ $product->name }}</a></h4>
-								<span>Rp{{ number_format($product->priceLabel(), 0, ",", ".") }}</span>
-							</div>
-						</div>
-					@endforeach
-				</div>
-			</div>
-		</div>
-	</div>
+      </div>
+    </section>
+    <!-- Categories Section End -->
 
-       
-	<!-- product area end -->
-@endif
-    <!-- end -->
+    <!-- Featured Section Begin -->
+    <section class="featured spad">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="section-title">
+              <h2>Featured Product</h2>
+            </div>
+          </div>
+        </div>
+        <div class="row featured__filter" id="product-list">
+        </div>
+      </div>
+    </section>
+    <!-- Featured Section End -->
+
+    <!-- Banner Begin -->
+    <div class="banner">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="banner__pic">
+              <img src="{{ asset('frontend/img/banner/banner-1.jpg') }}" alt="" />
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="banner__pic">
+              <img src="{{ asset('frontend/img/banner/banner-2.jpg') }}" alt="" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Banner End -->
 @endsection

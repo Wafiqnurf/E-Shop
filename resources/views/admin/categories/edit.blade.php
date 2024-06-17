@@ -1,52 +1,100 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
-
-    <!-- Main content -->
-    <section class="content pt-4">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Edit Kategori</h3>
-                <a href="{{ route('admin.categories.index')}}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-arrow-left"></i> Kembali</a>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body">
-                <form method="post" action="{{ route('admin.categories.update', $category) }}">
+        <div class="card">
+            <div class="card-header">
+                <h3>Edit Category
+                    <a href="{{ route('admin.categories.index') }}" class="btn btn-primary float-right">
+                        Go Back
+                    </a>
+                </h3>     
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.categories.update', $category->id) }}" method="post">
                     @csrf 
                     @method('put')
-                    <div class="form-group row border-bottom pb-4">
-                        <label for="name" class="col-sm-2 col-form-label">Nama Kategori</label>
-                        <div class="col-sm-10">
-                          <input type="text" class="form-control" name="name" value="{{ old('name', $category->name) }}" id="name">
-                        </div>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name', $category->name) }}">
                     </div>
-                    <div class="form-group row border-bottom pb-4">
-                        <label for="parent_id" class="col-sm-2 col-form-label">Kategori Utama</label>
-                        <div class="col-sm-10">
-                          <select class="form-control" name="parent_id" id="parent_id">
-                            <option value="">Atur sebagai Kategori Utama</option>
-                            @foreach($main_categories as $main_category)
-                              <option {{ old('parent_id', $category->parent_id) == $main_category->id ? 'selected' : null }} value="{{ $main_category->id }}"> {{ $main_category->name }}</option>
+                    <div class="form-group {{ $errors->has('photo') ? 'has-error' : '' }}">
+                        <label for="photo">Photo</label>
+                        <div class="needsclick dropzone" id="photo-dropzone">
+
+                        </div>
+                        @if($errors->has('photo'))
+                            <em class="invalid-feedback">
+                                {{ $errors->first('photo') }}
+                            </em>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label for="parent">Parent</label>
+                        <select name="category_id" class="form-control">
+                            <option value="">-- Default --</option>
+                            @foreach($categories as $id => $categoryName)
+                                <option {{ $category->category_id  === $id  ? 'selected' : null }} value="{{ $id }}">{{ $categoryName }}</option>
                             @endforeach
-                          </select>
-                        </div>
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-success">Save</button>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
                 </form>
-              </div>
-              <!-- /.card-body -->
             </div>
-            <!-- /.card -->
-          </div>
-          <!-- /.col -->
-        </div>
-        <!-- /.row -->
-      </div>
-      <!-- /.container-fluid -->
-    </section>
-    <!-- /.content -->
 @endsection
+
+@push('style-alt')
+<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+@endpush
+
+@push('script-alt')   
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <script>
+    Dropzone.options.photoDropzone = {
+        url: "{{ route('admin.categories.storeImage') }}",
+        acceptedFiles: '.jpeg,.jpg,.png,.gif',
+        maxFiles: 1,
+        addRemoveLinks: true,
+        headers: {
+        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        success: function (file, response) {
+        $('form').find('input[name="photo"]').remove()
+        $('form').append('<input type="hidden" name="photo" value="' + response.name + '">')
+        },
+        removedfile: function (file) {
+        file.previewElement.remove()
+        if (file.status !== 'error') {
+            $('form').find('input[name="photo"]').remove()
+            this.options.maxFiles = this.options.maxFiles + 1
+        }
+        },
+        init: function () {
+            @if(isset($category) && $category->photo)
+                var file = {!! json_encode($category->photo) !!}
+                    this.options.addedfile.call(this, file)
+                this.options.thumbnail.call(this, file, "{{ $category->photo->getUrl() }}")
+                file.previewElement.classList.add('dz-complete')
+                $('form').append('<input type="hidden" name="photo" value="' + file.file_name + '">')
+                this.options.maxFiles = this.options.maxFiles - 1
+            @endif
+        },
+        error: function (file, response) {
+            if ($.type(response) === 'string') {
+                var message = response //dropzone sends it's own error messages in string
+            } else {
+                var message = response.errors.file
+            }
+            file.previewElement.classList.add('dz-error')
+            _ref = file.previewElement.querySelectorAll('[data-dz-errormessage]')
+            _results = []
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                node = _ref[_i]
+                _results.push(node.textContent = message)
+            }
+            return _results
+        }
+    }
+</script>
+@endpush

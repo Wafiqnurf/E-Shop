@@ -1,18 +1,8 @@
-import lodash from 'lodash';
-import Popper from '@popperjs/core/dist/umd/popper.js';
-import jQuery from 'jquery';
-import axios from 'axios';
-import 'bootstrap';
+window._ = require('lodash');
 
-window._ = lodash;
-/**
- * We'll load jQuery and the Bootstrap jQuery plugin which provides support
- * for JavaScript based Bootstrap features such as modals and tabs. This
- * code may be modified to fit the specific needs of your application.
- */
-
-window.Popper = Popper;
-window.$ = window.jQuery = jQuery;
+try {
+    require('bootstrap');
+} catch (e) {}
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -20,7 +10,7 @@ window.$ = window.jQuery = jQuery;
  * CSRF token as a header based on the value of the "XSRF" token cookie.
  */
 
-window.axios = axios;
+window.axios = require('axios');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -31,9 +21,8 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  */
 
 // import Echo from 'laravel-echo';
-// import pusher from 'pusher-js'
 
-// window.Pusher = pusher;
+// window.Pusher = require('pusher-js');
 
 // window.Echo = new Echo({
 //     broadcaster: 'pusher',

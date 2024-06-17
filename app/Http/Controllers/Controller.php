@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Midtrans\Config;
 
 class Controller extends BaseController
 {
-    use AuthorizesRequests, ValidatesRequests;
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     protected $data = [];
 	protected $uploadsFolder = 'uploads/';
@@ -31,9 +33,9 @@ class Controller extends BaseController
 	 */
 	public function __construct()
 	{
-		$this->rajaOngkirApiKey = config('ongkir.api_key');
-		$this->rajaOngkirBaseUrl = config('ongkir.base_url');
-		$this->rajaOngkirOrigin = config('ongkir.origin');
+		$this->rajaOngkirApiKey = config('rajaongkir.api_key');
+		$this->rajaOngkirBaseUrl = config('rajaongkir.base_url');
+		$this->rajaOngkirOrigin = config('rajaongkir.origin');
 	}
     /**
 	 * Raja Ongkir Request (Shipping Cost Calculation)
@@ -52,7 +54,7 @@ class Controller extends BaseController
 		$requestParams = [
 			'headers' => $headers,
 		];
-		
+
 		$url =  $this->rajaOngkirBaseUrl . $resource;
 		if ($params && $method == 'POST') {
 			$requestParams['form_params'] = $params;
@@ -60,7 +62,7 @@ class Controller extends BaseController
 			$query = is_array($params) ? '?'.http_build_query($params) : '';
 			$url = $this->rajaOngkirBaseUrl . $resource . $query;
 		}
-
+		
 		$response = $client->request($method, $url, $requestParams);
 
 		return json_decode($response->getBody(), true);
@@ -92,7 +94,10 @@ class Controller extends BaseController
 			}
 		}
 		
-        return $provinces;
+        return response()->json([
+            'status' => 200,
+            'provinces' => $provinces,
+        ]);
 	}
 	
 	/**
@@ -121,7 +126,7 @@ class Controller extends BaseController
 			foreach ($cityList as $city) {
 				$cities[$city['city_id']] = strtoupper($city['type'].' '.$city['city_name']);
 			}
-        }
+		}
 		
 		return $cities;
 	}
@@ -175,12 +180,12 @@ class Controller extends BaseController
 	protected function initPaymentGateway()
 	{
 		// Set your Merchant Server Key
-		\Midtrans\Config::$serverKey = config('midtrans.serverKey');
+		Config::$serverKey = config('midtrans.serverKey');
 		// Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-		\Midtrans\Config::$isProduction = false;
+		Config::$isProduction = config('midtrans.isProduction');
 		// Set sanitization on (default)
-		\Midtrans\Config::$isSanitized = true;
+		Config::$isSanitized = config('midtrans.isSanitized');
 		// Set 3DS transaction for credit card to true
-		\Midtrans\Config::$is3ds = true;
+		Config::$is3ds = config('midtrans.is3ds');
 	}
 }
