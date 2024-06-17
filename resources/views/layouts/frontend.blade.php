@@ -45,7 +45,7 @@
                     <a href="#"><i class="fa fa-shopping-bag"></i> <span>{{ $cartCount }}</span></a>
                 </li>
             </ul>
-            <div class="header__cart__price">item: <span>${{ $cartTotal }}</span></div>
+            <div class="header__cart__price">item: <span>Rp{{ $cartTotal }}</span></div>
         </div>
         <div class="humberger__menu__widget">
             @guest
@@ -193,7 +193,7 @@
                                     <span>{{ $cartCount }}</span></a>
                             </li>
                         </ul>
-                        <div class="header__cart__price">item: <span>${{ $cartTotal }}</span></div>
+                        <div class="header__cart__price">item: <span>Rp{{ $cartTotal }}</span></div>
                     </div>
                 </div>
             </div>
