@@ -3,11 +3,11 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Ogani Template" />
-    <meta name="keywords" content="Ogani, unica, creative, html" />
+    <meta name="description" content="Shopme Template" />
+    <meta name="keywords" content="Shopme, unica, creative, html" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Ogani | Template</title>
+    <title>Shopme | Template</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap"
@@ -102,8 +102,7 @@
         </div>
         <div class="humberger__menu__contact">
             <ul>
-                <li><i class="fa fa-envelope"></i> hello@colorlib.com</li>
-                <li>Free Shipping for all Order of $99</li>
+                <li>Free Shipping for all Order of Rp.100.000</li>
             </ul>
         </div>
     </div>
@@ -117,8 +116,7 @@
                     <div class="col-lg-6 col-md-6">
                         <div class="header__top__left">
                             <ul>
-                                <li><i class="fa fa-envelope"></i> hello@colorlib.com</li>
-                                <li>Free Shipping for all Order of $99</li>
+                                <li>Gratis Ongkos Kirim Minimal Belanja Rp.100.000</li>
                             </ul>
                         </div>
                     </div>
@@ -221,7 +219,7 @@
                                 <i class="fa fa-phone"></i>
                             </div>
                             <div class="hero__search__phone__text">
-                                <h5>+65 11.188.888</h5>
+                                <h5>+62 81190876090</h5>
                                 <span>support 24/7 time</span>
                             </div>
                         </div>
@@ -244,9 +242,9 @@
                             <a href="./index.html"><img src="{{ asset('frontend/img/logo.png') }}" alt="" /></a>
                         </div>
                         <ul>
-                            <li>Address: 60-49 Road 11378 New York</li>
-                            <li>Phone: +65 11.188.888</li>
-                            <li>Email: hello@colorlib.com</li>
+                            <li>Address: Jln. Gatot Subroto No.12 Jakarta</li>
+                            <li>Phone: +62 81190876090</li>
+                            <li>Email: Shopme@gmail.com</li>
                         </ul>
                     </div>
                 </div>
